@@ -190,9 +190,11 @@
   },
   "active": "ddc65782c0c76834",
   "lastOpenFiles": [
+    "README.md",
     "06-ddd.md",
     "05-changelog.md",
     "04-api-endpoints.md",
+    "03-auth.md",
     "01-arsitektur.md"
   ]
 }

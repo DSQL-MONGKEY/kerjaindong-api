@@ -1,5 +1,56 @@
 # 05 — Changelog
 
+## 2026-10-06 — Refactor: module `company-members` → `company-access`
+
+- Rename module agar mencerminkan kapabilitasnya (keanggotaan company, role
+  internal, dan undangan — bukan hanya "members"):
+  `src/modules/company-access/` dengan `CompanyAccessModule` dan
+  `CompanyAccessService`; controller menjadi `members.controller.ts`,
+  `company-invitations.controller.ts`, `invitations.controller.ts`.
+- E2E spec direname: `test/company-access.e2e-spec.ts`.
+- Tidak ada perubahan route, perilaku, maupun DTO — murni penamaan.
+- `docs/01-arsitektur.md`: ditambah section **Peta module ↔ route** untuk
+  menegaskan bahwa pengelompokan module mengikuti kapabilitas domain, bukan
+  prefix URL (satu prefix dapat dilayani beberapa module).
+- Referensi di `AGENTS.md` dan `docs/06-ddd.md` disesuaikan.
+
+## 2026-10-06 — Dokumentasi endpoint lengkap + CTA beranda
+
+- `docs/04-api-endpoints.md` ditulis ulang: **setiap endpoint** kini memuat
+  payload request (body/query beserta aturannya) dan **expected response**
+  (status + contoh JSON), ditambah bagian "Bentuk data bersama" (`UserPublic`,
+  `JobCard`, `JobDetail`, `ApplicationDetail`, `MyCompany`, `EmployerJob`,
+  `ApplicantListItem`, dll), konvensi envelope/passthrough, dan bentuk error.
+- Frontend (beranda): tombol "Daftar" (hero) dan seksi CTA "Daftar sebagai
+  Perusahaan" hanya tampil untuk pengunjung anonim; user yang sudah login
+  cukup melihat tombol "Lihat Lowongan".
+
+## 2026-10-06 — Bugfix: 403 saat onboarding company & buat lowongan
+
+**Masalah**: user employer menerima `403 "Anda belum terdaftar di perusahaan"`
+saat membuka halaman pembuatan profil perusahaan, sehingga form tidak pernah
+muncul dan pembuatan lowongan ikut gagal (`companyId` kosong →
+`403` di `POST /companies/:companyId/jobs`).
+
+**Akar masalah**: `GET /companies/me` memakai `CompanyAccessGuard`; user yang
+belum punya company tertahan guard dengan **403**, padahal frontend hanya
+mengenali **404** sebagai state "belum onboarding".
+
+**Perbaikan**
+- Backend: guard dilepas dari `GET /companies/me` — service mengembalikan
+  **404** (`CompaniesService.getMine` sudah `NotFoundException`). Guard tetap
+  dipakai di `PATCH /companies/me` dan seluruh endpoint company lainnya.
+- Frontend: field nama owner company wajib + prefill dari nama akun; halaman
+  employer memperlakukan `403`/`404` dari `GET /companies/me` sebagai "belum
+  punya company" (kompatibilitas backend lama); helper `isApiError` ditambah di
+  `lib/http.ts`.
+- Dokumentasi endpoint `GET /companies/me` diperbarui (JWT, 404 saat belum
+  onboarding).
+
+**Verifikasi**: backend lint/build hijau, unit 22, e2e 69; frontend lint 0 error
+dan build sukses; alur curl employer (register → 404 → create company → 201 →
+create job → 201) tereproduksi dan lulus setelah perbaikan.
+
 ## 2026-10-05 — Dokumentasi: pemetaan DDD & status implementasi
 
 - Tambah [`06-ddd.md`](./06-ddd.md): bounded context ↔ modul + section schema,

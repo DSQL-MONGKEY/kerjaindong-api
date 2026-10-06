@@ -19,7 +19,7 @@ Setiap context = satu modul Nest + satu section di `prisma/schema.prisma`:
 |---|---|---|
 | Identity & Access (IAM) | `modules/auth`, `modules/users` | baris 13 `BOUNDED CONTEXT: IDENTITY & ACCESS (IAM)` |
 | Seeker | `modules/seeker-profiles`, `modules/resumes` | baris 77 `SEEKER DOMAIN` |
-| Company & Employer | `modules/companies`, `modules/company-members` | baris 126 `COMPANY & EMPLOYER DOMAIN` |
+| Company & Employer | `modules/companies`, `modules/company-access` | baris 126 `COMPANY & EMPLOYER DOMAIN` |
 | Job & Application | `modules/jobs`, `modules/applications` | baris 230 `JOB & APPLICATION DOMAIN` |
 | Engagement & Admin | `modules/engagement`, `modules/admin` | baris 355 `ENGAGEMENT & ADMIN` |
 | Reference wilayah | `modules/regions` | section `REFERENCE: WILAYAH INDONESIA` (generic subdomain) |
@@ -28,7 +28,7 @@ Setiap context = satu modul Nest + satu section di `prisma/schema.prisma`:
 
 - **Core domain** — pembeda produk: `jobs`, `applications`, `companies`.
 - **Supporting** — mendukung core: `seeker-profiles`, `resumes`, `engagement`,
-  `company-members`, `admin`.
+  `company-access`, `admin`.
 - **Generic** — bisa dibeli/diganti: IAM (`auth`/`users`), `regions`.
 
 ### Ubiquitous language
@@ -89,8 +89,8 @@ Pola integrasi antar-context yang dipakai:
 | `JobApplication` | 1 lamaran per lowongan; history wajib pada setiap perubahan status; counter konsisten | `modules/applications/applications.service.ts:109` (apply), `:288` (withdraw), `:425` (update status) |
 | `Resume` | maksimal satu `isPrimary` per seeker | `modules/resumes/resumes.service.ts:21`, `:65`, `:98` |
 | `Company` | company selalu punya OWNER + role `EMPLOYER` saat dibuat | `modules/companies/companies.service.ts:36` |
-| `CompanyInvitation` | token sekali pakai, expiry 7 hari, email harus cocok, reaktivasi member lama | `modules/company-members/company-members.service.ts:222` |
-| `EmployerProfile` | soft remove + cabut session, OWNER/diri sendiri dilindungi | `modules/company-members/company-members.service.ts:72` |
+| `CompanyInvitation` | token sekali pakai, expiry 7 hari, email harus cocok, reaktivasi member lama | `modules/company-access/company-access.service.ts:222` |
+| `EmployerProfile` | soft remove + cabut session, OWNER/diri sendiri dilindungi | `modules/company-access/company-access.service.ts:72` |
 | Admin/moderation | audit log ditulis dalam transaksi yang sama | `modules/admin/admin.service.ts:96`, `:197`, `:287` |
 
 ### Domain policy (aturan murni, terpisah dari I/O)

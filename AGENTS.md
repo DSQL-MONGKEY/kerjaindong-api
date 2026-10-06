@@ -55,10 +55,10 @@ src/generated/     Prisma client hasil generate (JANGAN edit manual, tidak di-co
 src/infra/         PrismaService, dsb (module global)
 src/common/        guards, decorators, filters, interceptors, health, utils, dto
 src/modules/       bounded context: auth, users, seeker-profiles, companies,
-                   company-members, jobs, resumes, applications, engagement,
+                   company-access, jobs, resumes, applications, engagement,
                    admin, regions
 test/              e2e spec (app, auth, onboarding, jobs, applications,
-                   engagement, admin, company-members)
+                   engagement, admin, company-access)
 docs/              dokumentasi teknis (payload tiap endpoint di 04)
 ```
 

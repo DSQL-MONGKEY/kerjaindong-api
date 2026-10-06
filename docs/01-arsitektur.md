@@ -40,7 +40,7 @@ src/
     users/                      GET/PATCH /users/me
     seeker-profiles/            profil job seeker (onboarding)
     companies/                  company + employer profile (onboarding)
-    company-members/            member, undangan & penerimaan undangan
+    company-access/             keanggotaan company, role internal & undangan
     jobs/                       job posting employer + feed & detail publik
     resumes/                    resume seeker (minimal, tanpa upload)
     applications/               lamaran, pipeline status, history, snapshot
@@ -56,7 +56,7 @@ test/
   applications.e2e-spec.ts      lamaran, pipeline, history, resume
   engagement.e2e-spec.ts        saved job & follow company
   admin.e2e-spec.ts             verifikasi, status user, moderasi, audit
-  company-members.e2e-spec.ts   undangan, accept, role, soft remove
+  company-access.e2e-spec.ts    undangan, accept, role, soft remove
 ```
 
 Prinsip: `src/generated/` adalah artefak Prisma — **jangan diedit manual** dan
@@ -74,7 +74,7 @@ Pendekatan yang dipakai adalah **strategic DDD penuh + tactical DDD sebagian**
 - **Aggregate invariant** dijaga transaksi DB: apply sekali + history
   (`applications.service.ts`), satu resume primary (`resumes.service.ts`),
   company selalu ber-OWNER (`companies.service.ts`), undangan sekali pakai
-  (`company-members.service.ts`), audit atomik (`admin.service.ts`).
+  (`company-access.service.ts`), audit atomik (`admin.service.ts`).
 - **Domain policy murni** diekstrak: `jobs/job-status.util.ts`,
   `applications/application-status.util.ts`, `common/utils/slug.util.ts`,
   `RegionsService.resolveLocation()`.
@@ -85,6 +85,31 @@ Pendekatan yang dipakai adalah **strategic DDD penuh + tactical DDD sebagian**
 
 Yang sengaja tidak dipakai (beserta alasannya) dirinci di
 [06-ddd.md](./06-ddd.md).
+
+## Peta module ↔ route
+
+Module adalah **batas kapabilitas domain**, bukan pengelompokan URL. Satu
+prefix bisa dilayani beberapa module, dan satu module bisa melayani beberapa
+prefix:
+
+| Module | Prefix/route yang dilayani | Catatan |
+|---|---|---|
+| `auth` | `/auth/*` | register/login/refresh/logout |
+| `users` | `/users/me` | identitas pengguna |
+| `seeker-profiles` | `/seeker-profile/me` | onboarding seeker |
+| `resumes` | `/resumes/*` | resume seeker |
+| `companies` | `/companies`, `/companies/me`, `/companies/:slug` | profil perusahaan |
+| `company-access` | `/companies/:companyId/members`, `/companies/:companyId/invitations`, `/invitations/*` | keanggotaan & undangan; sebagian route **tidak** ber-prefix `/companies` |
+| `jobs` | `/jobs`, `/companies/:companyId/jobs` | lowongan (employer + publik) |
+| `applications` | `/applications/*`, `/jobs/:jobId/applications` | lamaran & pipeline |
+| `engagement` | `/jobs/:jobId/save`, `/saved-jobs`, `/companies/:companyId/follow`, `/followed-companies` | bookmark & follow |
+| `admin` | `/admin/*` | moderasi (menyentuh company/job/user lewat kapabilitas admin) |
+| `regions` | `/regions` | referensi wilayah |
+| `common/health` | `/health` | kesehatan aplikasi |
+
+Implikasi praktis: memindahkan route tanpa mengubah module (atau sebaliknya)
+adalah perubahan yang murah; yang perlu dijaga adalah arah dependensi antar
+module (saat ini hanya `RegionsModule` yang diekspor lintas module).
 
 ## Request lifecycle
 
